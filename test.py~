@@ -1,0 +1,92 @@
+import cv2
+import numpy as np
+import sys 
+
+with open("image_paths2.txt",'r') as file:
+	lines = file.readlines()
+
+for line in lines:
+	print line
+	imagePath, label = line.split()
+
+	img = cv2.imread(imagePath) # frame is a HxW numpy ndarray of triplets (pixels), where W and H are the dimensions of the input image
+	img1 = cv2.resize(img,(100,100))
+	  # downsize it to reduce processing time
+	cv2.imshow("original",img1)
+
+	img1 = cv2.Canny(img1,50,255)
+	ele = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5),(1,1))
+	img1 = cv2.morphologyEx(img1,cv2.MORPH_CLOSE,ele)
+	cv2.imshow("canny2",img1)
+	contours, hierarchy = cv2.findContours(img1,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+	largestContourIndex = 0
+	largestContourArea = cv2.contourArea(contours[largestContourIndex])
+	i=1
+	while i<len(contours): 
+		  if cv2.contourArea(contours[i]) > cv2.contourArea(contours[largestContourIndex]):
+		      largestContourIndex = i
+		  i+=1
+	
+	# Draw the largest contour in the image.
+	cv2.drawContours(img1,contours,largestContourIndex,(255,255,255),-1,8,hierarchy,3)
+	x,y,w,h = cv2.boundingRect(contours[largestContourIndex])
+	
+	#line 
+	cv2.line(img1,(x,y+h),(x+w,y+h),255,2,8,0)
+
+	#mask
+	contours, hierarchy = cv2.findContours(img1,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+	largestContourIndex = 0
+	largestContourArea = cv2.contourArea(contours[largestContourIndex])
+	i=1
+	while i<len(contours): 
+		  if cv2.contourArea(contours[i]) > cv2.contourArea(contours[largestContourIndex]):
+		      largestContourIndex = i
+		  i+=1
+	
+	# Draw the largest contour in the image.
+	mask = img1
+	cv2.drawContours(mask,contours,largestContourIndex,(255,255,255),-1,8,hierarchy,3)
+
+
+	## Repeat
+
+		img1 = cv2.Canny(img1,50,255)
+	ele = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5),(1,1))
+	img1 = cv2.morphologyEx(img1,cv2.MORPH_CLOSE,ele)
+	cv2.imshow("canny2",img1)
+	contours, hierarchy = cv2.findContours(img1,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+	largestContourIndex = 0
+	largestContourArea = cv2.contourArea(contours[largestContourIndex])
+	i=1
+	while i<len(contours): 
+		  if cv2.contourArea(contours[i]) > cv2.contourArea(contours[largestContourIndex]):
+		      largestContourIndex = i
+		  i+=1
+	
+	# Draw the largest contour in the image.
+	cv2.drawContours(img1,contours,largestContourIndex,(255,255,255),-1,8,hierarchy,3)
+	x,y,w,h = cv2.boundingRect(contours[largestContourIndex])
+	
+	#line 
+	cv2.line(img1,(x,y+h),(x+w,y+h),255,2,8,0)
+
+	#mask
+	contours, hierarchy = cv2.findContours(img1,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+	largestContourIndex = 0
+	largestContourArea = cv2.contourArea(contours[largestContourIndex])
+	i=1
+	while i<len(contours): 
+		  if cv2.contourArea(contours[i]) > cv2.contourArea(contours[largestContourIndex]):
+		      largestContourIndex = i
+		  i+=1
+	
+	# Draw the largest contour in the image.
+	mask = img1
+	cv2.drawContours(mask,contours,largestContourIndex,(255,255,255),-1,8,hierarchy,3)
+
+	
+	cv2.imshow("final",mask)
+	
+	if cv2.waitKey(100) & 0xFF == ord("q"): # Wait for a few microseconds and check if `q` is pressed.. if yes, then quit
+		break

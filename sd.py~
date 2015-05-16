@@ -1,0 +1,136 @@
+# Takes a set of images as inputs, transforms them using multiple algorithms, then outputs them in CSV format
+
+import sys
+import csv
+import numpy as np
+import cv2
+
+imageDimension = 20
+imageSize = imageDimension * imageDimension
+
+outputFile = open(str(imageDimension)+"x"+str(imageDimension)+"_edges_temp.csv",'w')
+
+writer = csv.writer(outputFile,delimiter=',')
+
+with open("image_paths2.txt",'r') as file:
+	lines = file.readlines()
+
+for line in lines:
+	print line
+	imagePath, label = line.split()
+	if label!='C':
+		continue;
+	frame = cv2.imread(imagePath) # frame is a HxW numpy ndarray of triplets (pixels), where W and H are the dimensions of the input image
+	frame = cv2.resize(frame,(100,100))
+	frame = frame[:85,:]  # downsize it to reduce processing time
+	frame = cv2.resize(frame,(100,100))
+	cv2.imshow("original",frame)
+	
+	###############################################################################
+	# Make everything apart from the main object to be black in color
+	converted = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # Convert from RGB to HSV
+	skin = cv2.Canny(converted,50,100)	
+
+	cv2.imshow("masked",skin) # Everything apart from skin is shown to be black
+	###############################################################################
+	
+	
+	###############################################################################
+	# thresholding code
+	h,w = skin.shape[:2]
+
+	bw_image = skin  # Convert image from BGR to gray format
+#	bw_image = cv2.GaussianBlur(bw_image,(5,5),0)  # Highlight the main object
+	threshold = 1
+	for i in xrange(h):
+		  for j in xrange(w):
+		      if bw_image[i][j] > threshold:
+		          bw_image[i][j] = 255 #Setting the skin tone to be White
+		      else:
+		          bw_image[i][j] = 0 #else setting it to zero.
+	
+	bw_image = skin
+#	cv2.imshow("thresholded",bw_image) # Skin color is shown to be completely white
+	###############################################################################
+	
+	
+	###############################################################################
+	# Remove the arm by cropping the image and draw contours around the main object
+	sign_image = bw_image[:h-15,:]  # Cropping 15 pixels from the bottom
+	# Drawing a contour around white color.
+	# 'contours' is a list of contours found.
+	# 'hierarchy' is of no use as such.
+	contours, hierarchy = cv2.findContours(sign_image,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	
+	# Finding the contour with the greatest area.
+	largestContourIndex = 0
+	if len(contours)<=0:
+		print "Skipping due to empty contour"		
+		continue
+	largestContourArea = cv2.contourArea(contours[largestContourIndex])
+	i=1
+	while i<len(contours): 
+		  if cv2.contourArea(contours[i]) > cv2.contourArea(contours[largestContourIndex]):
+		      largestContourIndex = i
+		  i+=1
+	# Draw the largest contour in the image.
+	cv2.drawContours(sign_image,contours,largestContourIndex,(255,255,255),thickness = -1)
+	x,y,w,h = cv2.boundingRect(contours[largestContourIndex]) # Draw a rectangle around the contour perimeter
+	contours, hierarchy = cv2.findContours(sign_image,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	
+	# Finding the contour with the greatest area.
+	largestContourIndex = 0
+	if len(contours)<=0:
+		print "Skipping due to empty contour"		
+		continue
+	largestContourArea = cv2.contourArea(contours[largestContourIndex])
+	i=1
+	while i<len(contours): 
+		  if cv2.contourArea(contours[i]) > cv2.contourArea(contours[largestContourIndex]):
+		      largestContourIndex = i
+		  i+=1
+	# Draw the largest contour in the image.
+	cv2.drawContours(sign_image,contours,largestContourIndex,(255,255,255),thickness = -1)
+	x,y,w,h = cv2.boundingRect(contours[largestContourIndex]) # Draw a rectangle around the contour perimeter
+		
+# cv2.rectangle(sign_image,(x,y),(x+w,y+h),(255,255,255),0,8)
+	###############################################################################
+	
+	
+	#######################################################
+	### centre the image in its square ###################
+	squareSide = max(w,h)-1
+	hHalf = (y+y+h)/2
+	wHalf = (x+x+w)/2
+	hMin, hMax = hHalf-squareSide/2, hHalf+squareSide/2
+	wMin, wMax = wHalf-squareSide/2, wHalf+squareSide/2
+	
+	if (hMin>=0 and hMin<hMax and wMin>=0 and wMin<wMax):
+		sign_image = sign_image[hMin:hMax,wMin:wMax]
+	else:
+#		print "No contour found!! Skipping this image"
+		continue
+		
+	#cv2.imshow("centred",sign_image)
+	########################################################
+	
+	########################################################
+	# finally convert the multi-dimensonal array of the
+	# image to a one-dimensional one and write it to a file
+	sign_image = cv2.resize(sign_image,(imageDimension,imageDimension))
+	
+	flattened_sign_image = sign_image.flatten() # Convert multi-dimensional array to a one-dimensional array
+	outputLine = [label] + np.array(flattened_sign_image).tolist()
+	writer.writerow(outputLine)
+
+	cv2.imshow("final",sign_image)
+	#########################################################
+	
+	if cv2.waitKey(1) & 0xFF == ord("q"): # Wait for a few microseconds and check if `q` is pressed.. if yes, then quit
+		break
+
+# cleanup the camera and close any open windows
+# camera.release()
+cv2.destroyAllWindows()
+
+print "The program completed successfully !!"
