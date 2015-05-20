@@ -28,12 +28,6 @@ for imageDimension in [10,20,30,40]:
 		###############################################################################
 		# Make everything apart from the main object to be black in color
 	
-		#YCrCb testing 
-
-		#converted = cv2.cvtColor(frame, cv2.COLOR_BGR2YCR_CB) # Convert from RGB to HSV
-		#lowerBoundary = np.array([0,145,100],dtype="uint8")
-		#upperBoundary = np.array([250,175,125],dtype="uint8")
-
 		converted = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Convert from RGB to HSV
 	
 		# tuned settings

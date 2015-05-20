@@ -1,7 +1,5 @@
 # Takes a set of images as inputs, transforms them using multiple algorithms, then outputs them in CSV format
-
 import sys
-import csv
 import numpy as np
 import cv2
 from sklearn.externals import joblib
@@ -137,6 +135,5 @@ for line in lines:
 
 # cleanup the camera and close any open windows
 # camera.release()
-	cv2.destroyAllWindows()
 
 print "The program completed successfully !!"

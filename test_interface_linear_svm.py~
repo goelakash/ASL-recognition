@@ -125,7 +125,7 @@ for line in lines:
 		print d		
 		print pred
 #		pred = predicted[0].upper()
-		pred_path =  'sample/'+str(pred)+'.jpg'
+		pred_path =  'test_img/'+str(pred)+'.jpg'
 		
 		result = cv2.imread(pred_path)
 		result = cv2.resize(result,(100,100))

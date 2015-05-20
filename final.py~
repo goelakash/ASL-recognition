@@ -1,20 +1,16 @@
 # Takes a set of images as inputs, transforms them using multiple algorithms, then outputs them in CSV format
-
 import sys
-import csv
 import numpy as np
 import cv2
 from sklearn.externals import joblib
-
 dim = [10,20,30,40]
+import time
 
 with open("test_paths.txt",'r') as file:
 	lines = file.readlines()
 
 for line in lines:
 	imagePath, label = line.split()
-#	if label != 'H':
-#		continue
 	print line
 
 	frame = cv2.imread(imagePath) # frame is a HxW numpy ndarray of triplets (pixels), where W and H are the dimensions of the input image
@@ -116,28 +112,41 @@ for line in lines:
 
 	flattened_sign_image = sign_image.flatten() # Convert multi-dimensional array to a one-dimensional array
 #	cv2.imshow("final",sign_image)
-	
+	knn_list=[]
+	svm_list=[]
 	for d in dim:
-		clf = joblib.load('models/linear_SVC/linearSVC_'+str(d)+'x'+str(d)+'.pkl')
+		knn = joblib.load('models/knn_10/knn_10_'+str(d)+'x'+str(d)+'.pkl')
+		svm = joblib.load('models/linear_SVC/linearSVC_'+str(d)+'x'+str(d)+'.pkl')
+
 		temp_image = cv2.resize(sign_image,(d,d)).flatten()
-		predicted = clf.predict(temp_image)
-		pred = predicted[0]
-		print d		
-		print pred
-#		pred = predicted[0].upper()
-		pred_path =  'sample/'+str(pred)+'.jpg'
+		predicted1 = knn.predict(temp_image)
+		predicted2 = svm.predict(temp_image)
+		knn_list.append(predicted1[0])
+		svm_list.append(predicted2[0])
 		
-		result = cv2.imread(pred_path)
-		result = cv2.resize(result,(100,100))
-		cv2.imshow("predicted by "+str(d)+"x"+str(d)+" SVM model: "+str(pred),result)
-		cv2.waitKey(1000)	
+#		pred = predicted[0].upper()
+	pred1 = max(set(knn_list), key=knn_list.count)
+	pred2 = max(set(svm_list), key=svm_list.count)
+
+	pred_path1 =  'sample/'+str(pred1)+'.jpg'
+	pred_path2 =  'sample/'+str(pred2)+'.jpg'
+	
+	result1 = cv2.imread(pred_path1)
+	result2 = cv2.imread(pred_path2)
+
+	result1 = cv2.resize(result1,(100,100))
+	result2 = cv2.resize(result2,(100,100))
+	cv2.imshow("predicted by knn-10 : "+str(pred1),result1)
+	cv2.imshow("predicted by linear svm: "+str(pred2),result2)
+
+	cv2.waitKey(5000)	
 	#########################################################
 
 	if cv2.waitKey(1) & 0xFF == ord("q"): # Wait for a few microseconds and check if `q` is pressed.. if yes, then quit
 		break
-
+	cv2.destroyAllWindows()
+	time.sleep(1)
 # cleanup the camera and close any open windows
 # camera.release()
-	cv2.destroyAllWindows()
 
 print "The program completed successfully !!"

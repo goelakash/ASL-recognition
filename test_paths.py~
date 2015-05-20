@@ -1,6 +1,6 @@
 import os
 
-path = "img/test"
+path = "test_img"
 file = open("test_paths.txt","w")
 for (dirpath,dirnames,filenames) in os.walk(path):
 	for filename in filenames:

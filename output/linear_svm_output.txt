@@ -186,3 +186,7 @@ train_test_split() on 40x40 dataset:
           Y       1.00      1.00      1.00        52
 
 avg / total       0.99      0.99      0.99       900
+LinearSVC(C=1.0, class_weight=None, dual=True, fit_intercept=True,
+     intercept_scaling=1, loss='l2', multi_class='ovr', penalty='l2',
+     random_state=None, tol=0.0001, verbose=0)Kfold on 10x10 dataset:
+

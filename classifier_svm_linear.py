@@ -1,4 +1,4 @@
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix,roc_curve
 from sklearn.externals import joblib
 import numpy as np 
 import os
@@ -16,6 +16,9 @@ def prec(num):
 
 outfile = open("output/linear_svm_output.txt","a")
 
+clf = svm.LinearSVC()
+outfile.write(str(clf))
+
 for dim in [10,20,30,40]:
 	images=[]
 	labels=[]
@@ -28,9 +31,9 @@ for dim in [10,20,30,40]:
 			image=[int(pixel) for pixel in line.split(',')]
 			images.append(np.array(image))
 		
-	clf = svm.LinearSVC()
-	outfile.write(str(clf))
 	print clf
+	clf = svm.LinearSVC()
+	
 	kf = cross_validation.KFold(len(images),n_folds=10,indices=True, shuffle=True, random_state=4)
 	outfile.write("Kfold on "+str(dim)+"x"+str(dim)+" dataset:\n\n")	
 	print "\nDividing dataset using `Kfold()` -:\n\nThe training dataset has been divided into " + str(len(kf)) + " parts\n"
@@ -50,8 +53,8 @@ for dim in [10,20,30,40]:
 		predicted = clf.predict(testing_images)
 		print prec(clf.score(testing_images, testing_labels))
 
-		outfile.write(prec(clf.score(testing_images, testing_labels))+'\n')
-#		outfile.write(confusion_matrix(testing_labels, predicted))
+#		outfile.write(prec(clf.score(testing_images, testing_labels))+'\n')
+		outfile.write(roc_curve(testing_labels, predicted))
 #		print confusion_matrix(testing_labels, predicted)
 #		outfile.write(metrics.classification_report(testing_labels, predicted))
 
@@ -64,8 +67,8 @@ for dim in [10,20,30,40]:
 	print "Dumped"	
 	predicted = clf.predict(testing_images)
 	print prec(score)
-	outfile.write(prec(clf.score(testing_images, testing_labels))+'\n')
-#	outfile.write(confusion_matrix(testing_labels, predicted))
+#	outfile.write(prec(clf.score(testing_images, testing_labels))+'\n')
+	outfile.write(roc_curve(testing_labels, predicted))
 #	print confusion_matrix(testing_labels, predicted)
-	outfile.write(metrics.classification_report(testing_labels, predicted))
+#	outfile.write(metrics.classification_report(testing_labels, predicted))
 
